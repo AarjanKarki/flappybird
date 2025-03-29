@@ -1,6 +1,7 @@
 import pygame, os
 import time
 import random
+clock=pygame.time.Clock()
 WIDTH=864
 HEIGHT=936
 screen=pygame.display.set_mode((WIDTH,HEIGHT))
@@ -44,6 +45,38 @@ class Bird(pygame.sprite.Sprite):
         self.rect.center=[x,y]
         self.vel=0
         self.clicked=False
+    def update(self):
+        #applying gravity
+        self.vel+=0.01
+        if self.vel>2:
+            self.vel=2
+        if self.rect.bottom<HEIGHT-50:
+            self.rect.y+=int(self.vel)
+        
+        if game_over==False:
+            #checking for jump
+            if pygame.mouse.get_pressed()[0]==1 and self.clicked==False:
+                self.clicked=True
+                self.vel-=7.5
+            if pygame.mouse.get_pressed()[0]==0:
+                self.clicked=False
+        #adding animation
+            self.counter+=1
+            flap_cooldown=5
+            if self.counter>flap_cooldown:
+                self.counter=0
+                self.index+=1
+                if self.index>=len(self.images):
+                    self.index=0
+                self.image=self.images[self.index]
+
+            
+
+        
+        
+        
+
+
 
 class Pipes(pygame.sprite.Sprite):
     def __init__(self,x,y,pipeup):
@@ -79,23 +112,30 @@ running=True
 while running:
     #drawing and scrolling the ground
     screen.blit(bg,(0,0))
-    screen.blit(floor,(floor_x,767))
     birdgroup.draw(screen)
     pipegroup.draw(screen)
     birdgroup.update()
     pipegroup.update()
-    
+    screen.blit(floor,(floor_x,767))
     for event in pygame.event.get():
         if event.type==pygame.QUIT:
             running=False
-        
     if flying==True and game_over==False:
-        pipeheight=random.randint(0,600)
-        bottompipe=Pipes(WIDTH,HEIGHT//2+pipeheight,1)
-        pipegroup.add(bottompipe) 
-        floor_x-=scroll_speed
-        if floor_x<-30:
-            floor_x=0
+        #generating new pipes
+        timenow=pygame.time.get_ticks()
+        if timenow-last_pipe>pipe_frequency:
+            pipeheight=random.randint(0,100)
+            bottompipe=Pipes(WIDTH,HEIGHT//2+pipeheight,1)
+            pipegroup.add(bottompipe)
+            last_pipe=timenow
+
+            
+    pipegroup.update()
+    floor_x-=scroll_speed
+    if floor_x<-30:
+        floor_x=0
+
+
 
     pygame.display.update()
 
