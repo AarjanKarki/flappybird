@@ -1,15 +1,16 @@
 import pygame, os
 import time
 import random
+import sys
+pygame.init()
 clock=pygame.time.Clock()
 fps=60
 WIDTH=864
 HEIGHT=936
 screen=pygame.display.set_mode((WIDTH,HEIGHT))
-
 #define game variables
 ground_scroll = 0
-scroll_speed = 0.5
+scroll_speed = 4
 flying = True
 pipe_gap = 150
 game_over = False
@@ -18,6 +19,7 @@ last_pipe = pygame.time.get_ticks() - pipe_frequency
 score = 0
 pass_pipe = False
 floor_x=0
+font_=pygame.font.SysFont('Comic Sans',50)
 
 
 
@@ -29,6 +31,13 @@ pipe=pygame.image.load(os.path.join('flappyball','pipe.png'))
 
 #checking if the pipe is facing up or down
 pipeup=1
+
+#showing text output on the screen
+def drawtext(text,font,textcolor,x,y):
+    mainfont=font.render(text,True,textcolor)
+    screen.blit(mainfont,(x,y))
+
+
 
 class Bird(pygame.sprite.Sprite):
     def __init__(self,x,y):
@@ -124,8 +133,20 @@ while running:
     birdgroup.draw(screen)
     birdgroup.update()
     
-    
+    #scrolling the ground
     screen.blit(floor,(ground_scroll,768))
+    #checking the score
+    if len(pipegroup)>0:
+        if birdgroup.sprites()[0].rect.left>pipegroup.sprites()[0].rect.left and\
+        birdgroup.sprites()[0].rect.right<pipegroup.sprites()[0].rect.right and\
+        pass_pipe==False:
+            pass_pipe=True
+        if pass_pipe==True:
+            if birdgroup.sprites()[0].rect.left>pipegroup.sprites()[0].rect.right:
+                score+=1
+                pass_pipe=False
+
+
     for event in pygame.event.get():
         if event.type==pygame.QUIT:
             running=False
@@ -138,8 +159,8 @@ while running:
         timenow=pygame.time.get_ticks()
         if timenow-last_pipe>pipe_frequency:
             pipeheight=random.randint(-100,100)
-            bottompipe=Pipes(300,HEIGHT//2+pipeheight,-1)
-            toppipe=Pipes(300,HEIGHT//2+pipeheight,1)
+            bottompipe=Pipes(WIDTH,HEIGHT//2+pipeheight,-1)
+            toppipe=Pipes(WIDTH,HEIGHT//2+pipeheight,1)
             pipegroup.add(bottompipe)
             pipegroup.add(toppipe)
             last_pipe=timenow
@@ -153,7 +174,15 @@ while running:
     for event in pygame.event.get():
         if event.type==pygame.MOUSEBUTTONDOWN and flying == False and game_over==False:
             flying=True
-
+    
+    #checking for the collisoion
+    if pygame.sprite.groupcollide(birdgroup,pipegroup,False,False) or flappy.rect.top<0:
+        game_over=True
+    #checking if the game is over if its hitting the ground or not flying
+    if flappy.rect.bottom>HEIGHT:
+        game_over=True
+        flying=False
+    drawtext(str(score),font_,'white',50,50)
 
     pygame.display.update()
 
