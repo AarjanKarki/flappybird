@@ -114,9 +114,37 @@ flappy=Bird(100,HEIGHT//2)
 birdgroup.add(flappy)
 #creating a bird group
 
+class Button():
+    def __init__(self,image,x,y):
+        self.image=image
+        self.x=x
+        self.y=y
+        self.rect=self.image.get_rect(center=(self.x,self.y))
+    
+    #def updatebutton(self):
 
 
         
+
+    def checkforinput(self,position):
+        #position=pygame.mouse.get_pos()
+        action=False
+        if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top,self.rect.bottom):
+            action=True
+        screen.blit(self.image,self.rect)
+        return(action)
+    
+button_surface=pygame.image.load(os.path.join('flappyball','restart.png'))
+button=Button(button_surface,WIDTH//2,HEIGHT//2)
+
+        
+def reset_game():
+    pipegroup.empty()
+    flappy.rect.x=100
+    flappy.rect.y=HEIGHT//2
+    score=0
+    return(score)
+    
 
 
 
@@ -146,10 +174,13 @@ while running:
                 score+=1
                 pass_pipe=False
 
-
     for event in pygame.event.get():
+        if event.type==pygame.MOUSEBUTTONDOWN and flying == False and game_over==False:
+            flying=True
         if event.type==pygame.QUIT:
             running=False
+        if event.type==pygame.MOUSEBUTTONDOWN and game_over==True:
+            button.checkforinput(pygame.mouse.get_pos())
     #checking if the bird has hit the ground
     if flappy.rect.bottom>HEIGHT:
         game_over=True
@@ -171,9 +202,7 @@ while running:
         if ground_scroll>+40:
             ground_scroll=0
         pipegroup.update()
-    for event in pygame.event.get():
-        if event.type==pygame.MOUSEBUTTONDOWN and flying == False and game_over==False:
-            flying=True
+
     
     #checking for the collisoion
     if pygame.sprite.groupcollide(birdgroup,pipegroup,False,False) or flappy.rect.top<0:
@@ -183,7 +212,12 @@ while running:
         game_over=True
         flying=False
     drawtext(str(score),font_,'white',50,50)
+    if game_over==True:
+        if button.checkforinput(pygame.mouse.get_pos()):
+            game_over=False
+            score=reset_game()
 
+        
     pygame.display.update()
 
 
